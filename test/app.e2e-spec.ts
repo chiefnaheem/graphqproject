@@ -3,10 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { STORAGE_PROVIDER } from './../src/files/interfaces/storage-provider.interface';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { User } from './../src/users/user.entity';
-import { File } from './../src/files/file.entity';
-import * as bcrypt from 'bcrypt';
 
 describe('Authentication (e2e)', () => {
   let app: INestApplication;
@@ -17,44 +13,12 @@ describe('Authentication (e2e)', () => {
     stat: jest.fn(),
   };
 
-  // In-memory DB
-  const users: User[] = [];
-  const files: File[] = [];
-
-  const mockUsersRepository = {
-    create: jest.fn().mockImplementation((dto) => dto),
-    save: jest.fn().mockImplementation(async (user) => {
-      const newUser = { ...user, id: `user-${Date.now()}`, createdAt: new Date(), updatedAt: new Date() };
-      users.push(newUser);
-      return newUser;
-    }),
-    findOne: jest.fn().mockImplementation(async ({ where }) => {
-      if (where.email) {
-        return users.find(u => u.email === where.email) || null;
-      }
-      if (where.id) {
-        return users.find(u => u.id === where.id) || null;
-      }
-      return null;
-    }),
-  };
-
-  // Override bcrypt to just work (optional, but real bcrypt is fine too)
-
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider(STORAGE_PROVIDER)
       .useValue(mockStorageProvider)
-      .overrideProvider(getRepositoryToken(User))
-      .useValue(mockUsersRepository)
-      .overrideProvider(getRepositoryToken(File))
-      .useValue({
-        create: jest.fn(),
-        save: jest.fn(),
-        find: jest.fn(),
-      })
       .compile();
 
     app = moduleFixture.createNestApplication();
