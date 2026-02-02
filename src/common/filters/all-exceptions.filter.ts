@@ -26,6 +26,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 ? exception.getStatus()
                 : HttpStatus.INTERNAL_SERVER_ERROR;
 
+        const isGraphql = host.getType<string>() === 'graphql';
+
+        if (isGraphql) {
+            if (httpStatus === HttpStatus.INTERNAL_SERVER_ERROR) {
+                this.logger.error(exception);
+            }
+            return;
+        }
+
         const responseBody = {
             statusCode: httpStatus,
             timestamp: new Date().toISOString(),
