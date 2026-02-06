@@ -34,14 +34,7 @@ export class FilesResolver {
 
     @Subscription(() => File, {
         filter: (payload, variables, context) => {
-            // Only notify the uploading user? The requirement says: "Only notify the uploading user"
-            // But subscription usually runs on the client. 
-            // If I subscribe, I want to know when *I* uploaded a file? 
-            // Or is it "Receive real-time updates when uploads occur"?
-            // "Emit an event when: A file upload is completed. Only notify the uploading user"
-            // This implies the user subscribes and gets notified when THEIR upload completes (maybe async?).
-            // But upload is a mutation (sync-ish). 
-            // Assuming standard pattern: Subscribe to "fileUploaded". Filter by user ID.
+
             return payload.fileUploaded.userId === context.req.user.id;
         },
         // We need to extract user from connection params for websocket auth
